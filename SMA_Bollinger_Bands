@@ -1,5 +1,5 @@
 //@version=4
-strategy("SMA Crossover", overlay=true, default_qty_value=100, default_qty_type = strategy.percent_of_equity, commission_value=0.01, commission_type=strategy.commission.percent)
+strategy("Bollinger Bands + SMA Crossover", overlay=true, default_qty_value=100, default_qty_type = strategy.percent_of_equity, commission_value=0.01, commission_type=strategy.commission.percent)
 
 // Define the time periods for the moving averages and the Bollinger Bands
 length1 = 10
