@@ -1,0 +1,38 @@
+//@version=4
+strategy("Bitcoin-Ethereum Mean Reversion Pair Trading Strategy", overlay=true, default_qty_value=100, default_qty_type = strategy.percent_of_equity, commission_value=0.01, commission_type=strategy.commission.percent)
+
+// Set up the input parameters
+btc = input(title="Bitcoin", type=input.symbol, defval="BINANCE:BTCUSDT")
+eth = input(title="Ethereum", type=input.symbol, defval="BINANCE:ETHUSDT")
+lookback = input(title="Lookback Period", type=input.integer, defval=10)
+
+// Define the price data
+btc_price = security(btc, timeframe.period, close)
+eth_price = security(eth, timeframe.period, close)
+
+// Calculate the spread
+spread = btc_price - eth_price
+
+// Calculate the mean and standard deviation of the spread
+spread_mean = sma(spread, lookback)
+spread_stddev = stdev(spread, lookback)
+
+// Calculate the z-score
+z_score = (spread - spread_mean) / spread_stddev
+
+// Set up the entry and exit conditions
+long_condition = z_score < -1.8
+short_condition = z_score > 1.8
+exit_condition = abs(z_score) < 0.6
+
+// Place the trades
+if long_condition
+    strategy.entry("Long", strategy.long, 1)
+if short_condition
+    strategy.entry("Short", strategy.short, 1)
+if exit_condition
+    strategy.close_all()
+
+// Plot the spread and the mean
+plot(spread, color=color.blue, title="Spread")
+plot(spread_mean, color=color.red, title="Mean")
