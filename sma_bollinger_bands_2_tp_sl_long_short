@@ -1,0 +1,53 @@
+//@version=5
+strategy('ChatGPT BB + SMA TP/SL L/S', overlay=true, default_qty_value=100, default_qty_type=strategy.percent_of_equity, commission_value=0.01, commission_type=strategy.commission.percent)
+
+// Define the time periods for the moving averages and the Bollinger Bands
+length1 = 10
+length2 = 30
+bbPeriod = 35
+bbStdDev = 1
+
+// Calculate the indicators
+sma1 = ta.sma(close, length1)
+sma2 = ta.sma(close, length2)
+bbStdDeviation = ta.stdev(close, bbPeriod)
+bbAverage = ta.sma(close, bbPeriod)
+upperBB = bbAverage + bbStdDev * bbStdDeviation
+lowerBB = bbAverage - bbStdDev * bbStdDeviation
+atr = ta.atr(14)
+
+// Signals
+entry_long = ta.crossover(close, upperBB)
+exit_long = ta.crossunder(sma1, sma2)
+entry_short = ta.crossunder(close, lowerBB)
+exit_short = ta.crossover(sma1, sma2)
+
+// Risk management
+n_atr = 2
+rrr = 1./3
+entry_price = close
+stop_loss = entry_price - n_atr * atr
+take_profit = entry_price + n_atr * atr / rrr
+percent_loss = (entry_price - stop_loss) / entry_price * 100
+percent_profit = (take_profit - entry_price) / entry_price * 100
+
+// Entry and exits Positions   
+if entry_long and strategy.position_size == 0
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Long", loss = close * percent_loss / 100 / syminfo.mintick, profit = close * percent_profit / 100 / syminfo.mintick, comment_loss = "SL Long", comment_profit = "TP Long")
+
+if exit_long 
+    strategy.close("Long", "Exit Long")
+
+if entry_short and strategy.position_size == 0
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short", loss = close * percent_loss / 100 / syminfo.mintick, profit = close * percent_profit / 100 / syminfo.mintick, comment_loss = "SL Short", comment_profit = "TP Short")
+
+if exit_short
+    strategy.close("Short", "Exit Short")
+
+// Plots
+plot(upperBB, color=color.new(color.yellow, 0))
+plot(lowerBB, color=color.new(color.yellow, 0))
+plot(sma1, color=color.new(#3bff3e, 0))
+plot(sma2, color=color.new(#3ba0ff, 0))
